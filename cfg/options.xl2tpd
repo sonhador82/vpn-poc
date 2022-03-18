@@ -1,0 +1,14 @@
+ipcp-accept-remote
+ms-dns  100.64.0.1
+# ms-dns  8.8.8.8
+noccp
+auth
+idle 1800
+# when having MTU issues, can be decreased to about 1200
+mtu 1410
+mru 1410
+nodefaultroute
+debug
+proxyarp
+connect-delay 5000
+
