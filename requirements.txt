@@ -1,0 +1,2 @@
+aiogram==2.19
+pytest==7.1.1
