@@ -5,7 +5,18 @@ import pickle
 class Client:
     def __init__(self, user_id: int, first_name: str):
         self.tg_user_id = user_id
-        self.first_name = first_name
+        self._first_name = first_name
+
+    def encode(self) -> bytes:
+        return pickle.dumps(self)
+
+    @property
+    def first_name(self):
+        return self._first_name
+
+    @staticmethod
+    def decode(data: bytes):
+        return pickle.loads(data)
 
     def __eq__(self, other):
         if self.tg_user_id == other.tg_user_id:
@@ -13,6 +24,7 @@ class Client:
 
     def __repr__(self):
         return f'<Client: {self.first_name}, id: {self.tg_user_id}>'
+
 
 
 class ClientCollection:

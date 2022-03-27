@@ -1,64 +1,42 @@
+import os
 import asyncio
+import logging
+
 import nats
-from nats.errors import ConnectionClosedError, TimeoutError, NoServersError
+from nats.aio.msg import Msg
+
+from client import Client
+from vpnservice import get_vpn_service
+from botservice import BotService
 
 
-NATS_URI="nats://localhost:4222"
+#logging.basicConfig(level=logging.DEBUG)
+BOT_TOKEN = os.environ['BOT_TOKEN']
+NATS_URI="nats://127.0.0.1:4222"
+NATS_SUBJ="requests"
+DAYS=1
+
+async def handler(msg: Msg):
+    client: Client = Client.decode(msg.data)
+    print(client.first_name, client.tg_user_id)
+    vpn = get_vpn_service()
+    vpn.issue_access_for(client, DAYS)
+    client_cfg = vpn.get_settings_for(client)
+    bs = BotService(BOT_TOKEN)
+    await bs.send_msg_to(client, client_cfg)
 
 
 async def main():
-    nc = await nats.connect(NATS_URI)
+    n = await nats.connect(NATS_URI)
+    sub = await n.subscribe(NATS_SUBJ, cb=handler)
 
-    async def message_handler(msg):
-        subject = msg.subject
-        reply = msg.reply
-        data = msg.data.decode()
-        print("Received a message on '{subject} {reply}': {data}".format(
-            subject=subject, reply=reply, data=data))
+    client = Client(365848986, "Sonhador")
+    await n.publish(NATS_SUBJ, client.encode())
 
-    # Simple publisher and async subscriber via coroutine.
-    sub = await nc.subscribe("foo", cb=message_handler)
-
-    # Stop receiving after 2 messages.
-    await sub.unsubscribe(limit=2)
-    await nc.publish("foo", b'Hello')
-    await nc.publish("foo", b'World')
-    await nc.publish("foo", b'!!!!!')
-
-    # Synchronous style with iterator also supported.
-    sub = await nc.subscribe("bar")
-    await nc.publish("bar", b'First')
-    await nc.publish("bar", b'Second')
-
-    try:
-        async for msg in sub.messages:
-            print(f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}")
-            await sub.unsubscribe()
-    except Exception as e:
-        pass
-
-    async def help_request(msg):
-        print(f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}")
-        await nc.publish(msg.reply, b'I can help')
-
-    # Use queue named 'workers' for distributing requests
-    # among subscribers.
-    sub = await nc.subscribe("help", "workers", help_request)
-
-    # Send a request and expect a single response
-    # and trigger timeout if not faster than 500 ms.
-    try:
-        response = await nc.request("help", b'help me', timeout=0.5)
-        print("Received response: {message}".format(
-            message=response.data.decode()))
-    except TimeoutError:
-        print("Request timed out")
-
-    # Remove interest in subscription.
+    while True:
+        await asyncio.sleep(5)
     await sub.unsubscribe()
-
-    # Terminate connection to NATS.
-    await nc.drain()
+ 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(main(), debug=True)

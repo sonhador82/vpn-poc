@@ -14,6 +14,9 @@ class OpenVpnService:
         log.debug(f"выписать доступ: {client.tg_user_id} на {days} день/дней")
         self._gen_cert()
 
+    def get_settings_for(self, client: Client) -> str:
+        return "some config"
+
     def _gen_cert(self):
         log.debug("генерирую сертификат")
         #!todo написать обертку для easyrsa? или что-то такое.
