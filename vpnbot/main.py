@@ -7,7 +7,6 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.dispatcher.webhook import SendMessage, SendChatAction
 from aiogram.utils.executor import start_webhook
 
-
 logging.basicConfig(level=logging.INFO)
 
 bot_logger = logging.getLogger('bot')
@@ -18,6 +17,7 @@ WEBHOOK_HOST='https://92f0-178-66-131-10.ngrok.io'
 WEBHOOK_PATH='/'
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
+NATS_URI="nats://localhost:4222"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
@@ -32,15 +32,18 @@ async def welcome(message: types.Message):
     '''
     return SendMessage(message.chat.id, welcome_text)
 
+
 @dp.message_handler(commands=["make_vpn"])
 async def make_vpn(message: types.Message):
     logging.info(message)
     logging.info(f'make vpn for: {message.from_user.username}, {message.from_user.first_name}, {message.from_user.id}, {message.date}')
-    return SendChatAction(message.chat.id, "typing")
+    return SendMessage(message.chat.id, "Подготавливаем конфигурацию...")
+
 
 async def on_startup(dp):
     await bot.set_webhook(WEBHOOK_URL)
     # insert code here to run it after start
+
 
 
 async def on_shutdown(dp):
