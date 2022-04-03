@@ -1,0 +1,49 @@
+# ==============================================================================
+
+client
+dev tun
+proto udp
+
+remote 146.70.86.115 1194
+server-poll-timeout 20
+
+remote-random
+resolv-retry infinite
+nobind
+
+# The following setting is only needed for old OpenVPN clients compatibility. New clients
+# automatically negotiate the optimal cipher.
+cipher AES-256-CBC
+
+auth SHA512
+verb 3
+
+setenv CLIENT_CERT 0
+tun-mtu 1500
+tun-mtu-extra 32
+mssfix 1450
+persist-key
+persist-tun
+
+reneg-sec 0
+
+remote-cert-tls server
+auth-user-pass
+pull
+fast-io
+
+script-security 2
+up /etc/openvpn/update-resolv-conf
+down /etc/openvpn/update-resolv-conf
+
+<ca>
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+</ca>
+
+key-direction 1
+<tls-auth>
+# 2048 bit OpenVPN static key
+-----BEGIN OpenVPN Static key V1-----
+-----END OpenVPN Static key V1-----
+</tls-auth>
