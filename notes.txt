@@ -12,3 +12,135 @@
 1. нажимает купить 1/30 дней
 получаю
 
+
+### openvpn modes
+- static key - общий ключ
+- client/server -> TLS
+
+## generic options
+--fast-io # только linux/udp (Experimental)  Optimize  TUN/TAP/UDP  I/O  write
+
+--status args
+              Write operational status to file every n seconds.
+--status file n 
+
+--status-version 2
+
+## Protocol options
+--data-ciphers AES-256-GCM:AES-128-GCM
+
+--secret file direction (не для tls), использовать общий ключ с помощью --genkey
+
+## client options, когда юзаем client/server
+--client == pull + tls-client
+--remote host [port] [proto]
+
+## server options ssl/tls обязателен
+--mode server
+
+--connect-freq n sec
+        Allow a maximum of n new connections per sec seconds from clients.
+
+--ifconfig-pool start-IP end-IP [netmask]
+    Set aside a pool of subnets to be dynamically allocated to connecting clients, similar to a DHCP server.
+
+--max-clients n
+    Limit server to a maximum of n concurrent clients.
+
+--opt-verify
+    Clients that connect with options that are incompatible with those of the server will be disconnected.
+
+--push*
+
+--server network netmask [nopool] # упрощение конфига, тоже что и 
+    For example, --server 10.8.0.0 255.255.255.0 expands as follows:
+        mode server
+        tls-server
+        push "topology [topology]"
+
+        if dev tun AND (topology == net30 OR topology == p2p):
+        ifconfig 10.8.0.1 10.8.0.2
+        if !nopool:
+            ifconfig-pool 10.8.0.4 10.8.0.251
+        route 10.8.0.0 255.255.255.0
+        if client-to-client:
+            push "route 10.8.0.0 255.255.255.0"
+        else if topology == net30:
+            push "route 10.8.0.1"
+
+        if dev tap OR (dev tun AND topology == subnet):
+        ifconfig 10.8.0.1 255.255.255.0
+        if !nopool:
+            ifconfig-pool 10.8.0.2 10.8.0.253 255.255.255.0
+        push "route-gateway 10.8.0.1"
+        if route-gateway unset:
+            route-gateway 10.8.0.2
+
+--verify-client-cert none|optional|require
+    Specify whether the client is required to supply a valid certificate.
+
+
+## Encryption options
+openvpn --genkey тип - генератор ключика
+
+## TLS mode
+control + data channels over one port
+
+--ca file
+    CA file in pem format
+
+--capath dir
+    Directory containing trusted certificates (CAs and CRLs). Not available with mbed TLS.
+    CAs in the capath directory are expected  to  be  named  <hash>.<n>.  CRLs  are  expected  to  be  named
+    <hash>.r<n>. See the -CApath option of openssl verify, and the -hash option of openssl x509, openssl crl
+    and X509_LOOKUP_hash_dir()(3) for more information.
+
+--cert file 
+    local cert file
+
+--crl-verify args
+    Check peer certificate against a Certificate Revocation List.
+    crl-verify crl-file.pem
+    crl-verify /etc/openvpn/crls dir
+
+--dh file
+--key file
+
+
+--tls-auth args
+    Add an additional layer of HMAC authentication on top of the TLS control channel to mitigate DoS attacks
+    and attacks on the TLS stack.
+
+
+## network config
+--keepalive args
+        A helper directive designed to simplify the expression of --ping and --ping-restart.
+    For example, --keepalive 10 60 expands as follows:
+
+        if mode server:
+            ping 10                    # Argument: interval
+            ping-restart 120           # Argument: timeout*2
+            push "ping 10"             # Argument: interval
+            push "ping-restart 60"     # Argument: timeout
+        else
+            ping 10                    # Argument: interval
+            ping-restart 60            # Argument: timeout
+
+--mode p2p|server
+
+--proto udp, tcp-client, or tcp-server udp4, tcp4-client, tcp4-server 
+
+--topology net30|p2p|subnet
+    Configure virtual addressing topology when running in --dev tun mode. This directive has no  meaning  in
+    --dev tap mode, which always uses a subnet topology.
+
+## managment
+--management args
+    Enable a management server on a socket-name Unix socket on those platforms supporting it, or on a desig‐
+    nated TCP port.
+
+    management socket-name unix          #
+    management socket-name unix pw-file  # (recommended)
+    management IP port                   # (INSECURE)
+    management IP port pw-file           #
+
