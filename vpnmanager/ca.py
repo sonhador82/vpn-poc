@@ -91,13 +91,9 @@ class CA:
             sys.exit(1)
 
 
-    def issue_cert(self):
-        pass
-
-    def revoke_cert(self):
-        pass
-
 if __name__ == '__main__':
 
     ca = CA("/tmp/ca_data", "./openssl.cnf")
-    ca.make_cert("user1")
+    ca.make_cert("user-1")
+
+

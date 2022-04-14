@@ -1,11 +1,17 @@
 import pathlib
 import pickle
 
+from connection import Connection
+
 
 class Client:
-    def __init__(self, user_id: int, first_name: str):
+    def __init__(self, user_id: int, first_name: str, conn: Connection):
         self.tg_user_id = user_id
         self._first_name = first_name
+        self.conn = conn
+
+    def set_conn(self, conn: Connection):
+        self.conn = conn
 
     def encode(self) -> bytes:
         return pickle.dumps(self)
@@ -23,7 +29,7 @@ class Client:
             return True
 
     def __repr__(self):
-        return f'<Client: {self.first_name}, id: {self.tg_user_id}>'
+        return f'<Client: {self.first_name}, id: {self.tg_user_id}, conn: {self.conn}>'
 
 
 
